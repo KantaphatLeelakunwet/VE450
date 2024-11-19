@@ -7,7 +7,7 @@ import os
 import sys
 import re
 import numpy as np
-from PIL import Image
+# from PIL import Image
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from Utils.utils import write_file, depth_read
@@ -175,7 +175,7 @@ if __name__ == '__main__':
 
     # Imports
     import tqdm
-    from PIL import Image
+    # from PIL import Image
     import os
     import argparse
     from Utils.utils import str2bool

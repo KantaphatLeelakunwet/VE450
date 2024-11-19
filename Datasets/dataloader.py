@@ -2,15 +2,17 @@
 Author: Wouter Van Gansbeke
 Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by-nc/4.0/)
 """
-
+import os
+import sys
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-import os
 import torch
 from PIL import Image
 import random
 import torchvision.transforms.functional as F
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from Utils.utils import depth_read
 
 

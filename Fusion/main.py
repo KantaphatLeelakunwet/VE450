@@ -54,8 +54,8 @@ parser.add_argument('--pretrained', type=str2bool, nargs='?', const=True, defaul
 parser.add_argument('--load_external_mod', type=str2bool, nargs='?', const=True, default=False, help='path to external mod')
 
 # Data augmentation settings
-parser.add_argument('--crop_w', type=int, default=1216, help='width of image after cropping') ## arguments for training that allow cropping images
-parser.add_argument('--crop_h', type=int, default=256, help='height of image after cropping') ## 
+parser.add_argument('--crop_w', type=int, default=256, help='width of image after cropping') ## arguments for training that allow cropping images
+parser.add_argument('--crop_h', type=int, default=192, help='height of image after cropping') ## 
 parser.add_argument('--max_depth', type=float, default=85.0, help='maximum depth of LIDAR input')
 parser.add_argument('--sparse_val', type=float, default=0.0, help='value to endode sparsity with')
 parser.add_argument("--rotate", type=str2bool, nargs='?', const=True, default=False, help="rotate image")

@@ -133,8 +133,10 @@ class Kitti_preprocessing(object):
         return files
 
     def prepare_dataset(self):
-        path_to_val_sel = 'data_depth_annotated/val'
-        path_to_test = 'depth_selection/train'
+        path_to_val_sel = 'depth_selection/val_selection_cropped'
+        path_to_test = 'depth_selection/test_depth_completion_anonymous'
+        # path_to_val_sel = 'data_depth_annotated/val'
+        # path_to_test = 'depth_selection/train'
         self.get_paths()
         self.selected_paths['lidar_in'] = self.get_selected_paths(os.path.join(path_to_val_sel, 'velodyne_raw'))
         self.selected_paths['gt'] = self.get_selected_paths(os.path.join(path_to_val_sel, 'groundtruth_depth'))

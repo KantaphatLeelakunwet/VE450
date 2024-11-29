@@ -3,23 +3,28 @@ Author: Wouter Van Gansbeke
 Licensed under the CC BY-NC 4.0 license (https://creativecommons.org/licenses/by-nc/4.0/)
 """
 
+
 import argparse
 import torch
 import torchvision.transforms as transforms
 import os, sys
-from PIL import Image
-import glob
-import tqdm
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 cwd = os.getcwd()
 print(cwd)
+from Utils.utils import str2bool, AverageMeter, depth_read
+from PIL import Image
+import glob
+import tqdm
 import numpy as np
-from Utils.utils import str2bool, AverageMeter, depth_read 
 import Models
 import Datasets
 from PIL import ImageOps
 import matplotlib.pyplot as plt
 import time
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+cwd = os.getcwd()
+print(cwd)
 
 #Training setttings
 parser = argparse.ArgumentParser(description='KITTI Depth Completion Task TEST')
@@ -156,7 +161,7 @@ def main():
             pil_img = to_pil(output.int())
             assert pil_img.size == (1216, 352)
             pil_img.save(os.path.join(save_root, os.path.basename(img)))
-    print('average_time: ', sum(total_time[100:])/(len(total_time[100:])))
+    print('average_time: ', sum(total_time[0:])/(len(total_time[0:])))
     print('num imgs: ', i + 1)
 
 

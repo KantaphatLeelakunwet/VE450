@@ -37,7 +37,7 @@ parser.add_argument('--crop_w', type=int, default=1216, help='width of image aft
 parser.add_argument('--crop_h', type=int, default=256, help='height of image after cropping')
 
 # Paths settings
-parser.add_argument('--save_path', type= str, default='../Saved/best', help='save path')
+parser.add_argument('--save_path', type= str, default='../DATA_TEST/Fusion', help='save path')
 parser.add_argument('--data_path', type=str, required=True, help='path to desired datasets')
 
 # Cudnn

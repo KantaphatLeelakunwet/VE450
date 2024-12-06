@@ -89,7 +89,7 @@ def depth_read(img, sparse_val):
     depth_png = np.expand_dims(depth_png, axis=2)
     # make sure we have a proper 16bit depth map here.. not 8bit!
     assert(np.max(depth_png) > 255)
-    depth = depth_png.astype(np.float) / 256.
+    depth = depth_png.astype(np.float64) / 256.
     depth[depth_png == 0] = sparse_val
     return depth
 

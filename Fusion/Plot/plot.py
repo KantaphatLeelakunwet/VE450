@@ -2,20 +2,24 @@ import open3d as o3d
 import matplotlib.pyplot as plt
 import time as t
 
-import os
+# import os
 
-def fetch_new_pcd(i, path): 
+rgb_path = '/home/jetson/VE450/Fusion/Datasets/KITTI/depth_selection/val_selection_cropped/image/'
+pc_path = '/home/jetson/VE450/Fusion/Saved/best/results/'
+og_depth = '/home/jetson/VE450/Fusion/Datasets/KITTI/depth_selection/val_selection_cropped/velodyne_raw/'
+
+def fetch_new_pcd(i, path_rgb, path_pc): 
     fetch = False
     color_raw = o3d.io.read_image(
-    path + '\Camera\C' + str(i) + '.png')
+    path_rgb+ 'C' + str(i) + '.png')
     depth_raw = o3d.io.read_image(
-    path + '\Lidar\L' + str(i) + '.png')
+    path_pc + 'F' + str(i) + '.png')
 
     pcd = o3d.geometry.PointCloud() # empty PCD
 
     if((not color_raw.is_empty()) and (not depth_raw.is_empty())): 
         rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
-        color_raw, depth_raw, depth_trunc= 50, depth_scale = 300, convert_rgb_to_intensity=False)
+        color_raw, depth_raw, depth_trunc= 50, convert_rgb_to_intensity=False)
 
         pcd = o3d.geometry.PointCloud.create_from_rgbd_image(
             rgbd_image,
@@ -27,12 +31,9 @@ def fetch_new_pcd(i, path):
         pcd.transform([[j, 0, 0, 0], [0, -j, 0, 0], [0, 0, -j, 0], [0, 0, 0, j]])
         fetch = True
     
-    return fetch, pcd
+    return fetch, pcd, rgbd_image
 
-def main(): 
-    # path = os.getcwd()
-    path = 'c:' + '\\' + 'Users\sofia\OneDrive\Documentos\SJTU\\10 . FALL SEM 2024\ME450 Capstone\code\VE450\DATA_TEST'
-
+def open3D_vis(option): 
     # color_raw = o3d.io.read_image(
     #     path + '/2011_09_26_drive_0002_sync_image_0000000005_image_02.png')
     # # color_raw = o3d.io.read_image(
@@ -51,35 +52,80 @@ def main():
     render_option.mesh_show_back_face = True 
     render_option.mesh_show_wireframe = True
     render_option.point_show_normal = True
-    geometry = o3d.geometry.PointCloud()
-    # vis.add_geometry(geometry)
 
-    fetched, pcd = fetch_new_pcd(0, path)
-    geometry.colors = pcd.colors
-    geometry.points = pcd.points
-    if (fetched): vis.add_geometry(geometry)
+    if(option == '2d'): 
+        geometry = o3d.geometry.RGBDImage() # 2D RGBD display 
+    else: 
+        geometry = o3d.geometry.PointCloud() # Point Cloud 3D display 
 
+    fetched, pcd, rgbd_image = fetch_new_pcd(0, rgb_path, pc_path)
+
+    if(option == '2d'): 
+        geometry.depth = rgbd_image.depth 
+        geometry.color = rgbd_image.color
+    else: # 3D as default 
+        geometry.colors = pcd.colors
+        geometry.points = pcd.points
+
+    if (fetched): 
+        vis.add_geometry(geometry)
 
     while(fetched): #reads through the entire video sequence
         #geometry = pcd
-        geometry.colors = pcd.colors
-        geometry.points = pcd.points
+        if(option == '2d'): 
+            geometry.color = rgbd_image.color
+            geometry.depth = rgbd_image.depth
+        else: # 3D as default 
+            geometry.colors = pcd.colors
+            geometry.points = pcd.points
         
         vis.update_geometry(geometry)
         vis.poll_events()
         vis.update_renderer()
-        fetched, pcd = fetch_new_pcd(i, path)
+
+        #update matplotlib plot 
+        #im1.set_data(rgbd_image.color)
+        #im2.set_data(rgbd_image.depth)
+        #plt.draw()
+
+        fetched, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
         # vis.reset_view_point(True)
         print(i)
         i = (i+1)%10
-        t.sleep(0.05)
+        t.sleep(0.09)
         # vis.clear_geometries()
+        
 
       #width=2000,
 #     height=1200,
 #     point_show_normal=True,
 #     mesh_show_wireframe=True,
 #     mesh_show_back_face=True
-    
+
+def matplotlib_vis(): 
+    i = 0
+    fetch, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
+    plt.subplot(1, 2, 1)
+    plt.title('RGB image')
+    im1 = plt.imshow(rgbd_image.color)
+    plt.subplot(1, 2, 2)
+    plt.title('Depth image')
+    im2 = plt.imshow(rgbd_image.depth)
+    plt.show()
+    while(fetch): 
+        i = i +1
+        #update matplotlib plot 
+        im1.set_data(rgbd_image.color)
+        im2.set_data(rgbd_image.depth)
+        plt.draw()
+        print(i)
+        i = (i+1)%10
+        t.sleep(0.09)
+        fetch, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
+
+
+def main():
+    open3D_vis('3d')
+
 
 main()

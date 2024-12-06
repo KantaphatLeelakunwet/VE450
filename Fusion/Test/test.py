@@ -37,7 +37,7 @@ parser.add_argument('--crop_w', type=int, default=1216, help='width of image aft
 parser.add_argument('--crop_h', type=int, default=256, help='height of image after cropping')
 
 # Paths settings
-parser.add_argument('--save_path', type= str, default='../DATA_TEST/Fusion', help='save path')
+parser.add_argument('--save_path', type= str, default='../Saved/best', help='save path')
 parser.add_argument('--data_path', type=str, required=True, help='path to desired datasets')
 
 # Cudnn
@@ -48,6 +48,8 @@ parser.add_argument('--max_depth', type=float, default=85.0, help="maximum depth
 parser.add_argument('--sparse_val', type=float, default=0.0, help="encode sparse values with 0")
 parser.add_argument('--num_samples', default=0, type=int, help='number of samples')
 
+#local datapath 
+local_data_path = '/home/jetson/VE450/Fusion/Datasets/KITTI/depth_selection/val_selection_cropped'
 
 def main():
     global args
@@ -99,37 +101,43 @@ def main():
     total_time = []
 
     with torch.no_grad():
-        for i, (img, rgb, gt) in tqdm.tqdm(enumerate(zip(dataset.selected_paths['lidar_in'],
-                                           dataset.selected_paths['img'], dataset.selected_paths['gt']))):
+        for i, (img, rgb) in tqdm.tqdm(enumerate(zip(dataset.selected_paths['lidar_in'],
+                                           dataset.selected_paths['img']))):
+        # for i, (img, rgb, gt) in tqdm.tqdm(enumerate(zip(dataset.selected_paths['lidar_in'],
+        #                                    dataset.selected_paths['img'], dataset.selected_paths['gt']))):
 
+            # LIDAR
             raw_path = os.path.join(img)
             raw_pil = Image.open(raw_path)
-            gt_path = os.path.join(gt)
-            gt_pil = Image.open(gt)
+            # gt_path = os.path.join(gt)
+            # gt_pil = Image.open(gt)
             assert raw_pil.size == (1216, 352)
 
-            crop = 352-args.crop_h
+            crop = 352-args.crop_h # Set the height of final image at line 37
             raw_pil_crop = raw_pil.crop((0, crop, 1216, 352))
-            gt_pil_crop = gt_pil.crop((0, crop, 1216, 352))
+            # gt_pil_crop = gt_pil.crop((0, crop, 1216, 352))
 
             raw = depth_read(raw_pil_crop, args.sparse_val)
             raw = to_tensor(raw).float()
-            gt = depth_read(gt_pil_crop, args.sparse_val)
-            gt = to_tensor(gt).float()
-            valid_mask = (raw > 0).detach().float()
+            # gt = depth_read(gt_pil_crop, args.sparse_val)
+            # gt = to_tensor(gt).float()
+            # valid_mask = (raw > 0).detach().float()
 
             input = torch.unsqueeze(raw, 0).cuda()
-            gt = torch.unsqueeze(gt, 0).cuda()
+            # gt = torch.unsqueeze(gt, 0).cuda()
 
             if args.normal:
                 # Put in {0-1} range and then normalize
                 input = input/args.max_depth
                 # input = depth_norm(input)
 
+            # RGB Image
             if args.input_type == 'rgb':
                 rgb_path = os.path.join(rgb)
                 rgb_pil = Image.open(rgb_path)
                 assert rgb_pil.size == (1216, 352)
+                # rgb_pil_crop = rgb_pil.crop((0, crop, 352, 352))
+                # assert rgb_pil.size == (1216, 352)
                 rgb_pil_crop = rgb_pil.crop((0, crop, 1216, 352))
                 rgb = to_tensor(rgb_pil_crop).float()
                 rgb = torch.unsqueeze(rgb, 0).cuda()
@@ -137,6 +145,7 @@ def main():
                     rgb = rgb*255.0
 
                 input = torch.cat((input, rgb), 1)
+                os.rename(rgb_path, local_data_path + '/image/C' + str(i) + '.png')
 
             torch.cuda.synchronize()
             a = time.perf_counter()
@@ -160,7 +169,9 @@ def main():
 
             pil_img = to_pil(output.int())
             assert pil_img.size == (1216, 352)
-            pil_img.save(os.path.join(save_root, os.path.basename(img)))
+            # assert pil_img.size == (352, 352)
+            pil_img.save(os.path.join(save_root, 'F' + str(i) + '.png'))
+            os.rename(raw_path, local_data_path + '/velodyne_raw/L' + str(i) + '.png')
     print('average_time: ', sum(total_time[0:])/(len(total_time[0:])))
     print('num imgs: ', i + 1)
 

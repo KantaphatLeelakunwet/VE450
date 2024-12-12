@@ -6,7 +6,7 @@ import time as t
 
 rgb_path = '/home/jetson/VE450/Fusion/Datasets/KITTI/depth_selection/val_selection_cropped/image/'
 pc_path = '/home/jetson/VE450/Fusion/Saved/best/results/'
-og_depth = '/home/jetson/VE450/Fusion/Datasets/KITTI/depth_selection/val_selection_cropped/velodyne_raw/'
+# og_depth = '/home/jetson/VE450/Fusion/Datasets/KITTI/depth_selection/val_selection_cropped/sofia_velodyne_raw/'
 
 def fetch_new_pcd(i, path_rgb, path_pc): 
     fetch = False
@@ -33,19 +33,9 @@ def fetch_new_pcd(i, path_rgb, path_pc):
     
     return fetch, pcd, rgbd_image
 
-def open3D_vis(option): 
-    # color_raw = o3d.io.read_image(
-    #     path + '/2011_09_26_drive_0002_sync_image_0000000005_image_02.png')
-    # # color_raw = o3d.io.read_image(
-    # #     '/Users/kantaphat/Downloads/ECE4500J/VE450/Plot/2011_09_26_drive_0002_sync_image_0000000005_image_02.png')
-    # print(color_raw)
-
-    # depth_raw = o3d.io.read_image(
-    #     # path + '/2011_09_26_drive_0002_sync_groundtruth_depth_0000000005_image_02.png')
-    #     '/home/jetson/Documents/VE450/VE450/Fusion/Saved/best/results/2011_09_26_drive_0002_sync_velodyne_raw_0000000005_image_02.png')
-    # print(depth_raw)
-
-    i = 1
+def start_vis_window(option):
+    i = 0
+    first = True
     vis = o3d.visualization.Visualizer()
     vis.create_window(width = 2000, height = 1200, left = 0, top = 0, visible = True)
     render_option = vis.get_render_option()
@@ -58,17 +48,39 @@ def open3D_vis(option):
     else: 
         geometry = o3d.geometry.PointCloud() # Point Cloud 3D display 
 
-    fetched, pcd, rgbd_image = fetch_new_pcd(0, rgb_path, pc_path)
+    return geometry, vis
 
-    if(option == '2d'): 
-        geometry.depth = rgbd_image.depth 
-        geometry.color = rgbd_image.color
-    else: # 3D as default 
-        geometry.colors = pcd.colors
-        geometry.points = pcd.points
+def open3D_vis(option): 
+    # color_raw = o3d.io.read_image(
+    #     path + '/2011_09_26_drive_0002_sync_image_0000000005_image_02.png')
+    # # color_raw = o3d.io.read_image(
+    # #     '/Users/kantaphat/Downloads/ECE4500J/VE450/Plot/2011_09_26_drive_0002_sync_image_0000000005_image_02.png')
+    # print(color_raw)
 
-    if (fetched): 
-        vis.add_geometry(geometry)
+    # depth_raw = o3d.io.read_image(
+    #     # path + '/2011_09_26_drive_0002_sync_groundtruth_depth_0000000005_image_02.png')
+    #     '/home/jetson/Documents/VE450/VE450/Fusion/Saved/best/results/2011_09_26_drive_0002_sync_velodyne_raw_0000000005_image_02.png')
+    # print(depth_raw)
+
+    # i = 0
+    # first = True
+    # vis = o3d.visualization.Visualizer()
+    # vis.create_window(width = 2000, height = 1200, left = 0, top = 0, visible = True)
+    # render_option = vis.get_render_option()
+    # render_option.mesh_show_back_face = True 
+    # render_option.mesh_show_wireframe = True
+    # render_option.point_show_normal = True
+
+    # if(option == '2d'): 
+    #     geometry = o3d.geometry.RGBDImage() # 2D RGBD display 
+    # else: 
+    #     geometry = o3d.geometry.PointCloud() # Point Cloud 3D display 
+
+    # fetched, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
+    geometry, vis = start_vis_window(option)
+    i = 0
+    fetched, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
+    first = True
 
     while(fetched): #reads through the entire video sequence
         #geometry = pcd
@@ -79,19 +91,22 @@ def open3D_vis(option):
             geometry.colors = pcd.colors
             geometry.points = pcd.points
         
-        vis.update_geometry(geometry)
-        vis.poll_events()
-        vis.update_renderer()
+        if(first): 
+            vis.add_geometry(geometry)
+            first = False
+        else: 
+            vis.update_geometry(geometry)
+            vis.poll_events()
+            vis.update_renderer()
 
         #update matplotlib plot 
         #im1.set_data(rgbd_image.color)
         #im2.set_data(rgbd_image.depth)
         #plt.draw()
-
-        fetched, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
-        # vis.reset_view_point(True)
         print(i)
         i = (i+1)%10
+        fetched, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
+        # vis.reset_view_point(True)
         t.sleep(0.09)
         # vis.clear_geometries()
         
@@ -101,6 +116,25 @@ def open3D_vis(option):
 #     point_show_normal=True,
 #     mesh_show_wireframe=True,
 #     mesh_show_back_face=True
+
+# function that initializes window
+
+def render_image(i, vis, geometry, pc_path, rgb_path, first): 
+    fetched, pcd, rgbd_image = fetch_new_pcd(i, rgb_path, pc_path)
+
+    while(fetched): #reads through the entire video sequence
+        #geometry = pcd
+        geometry.colors = pcd.colors
+        geometry.points = pcd.points
+        
+        if(first): 
+            vis.add_geometry(geometry)
+            first = False
+        else: 
+            vis.update_geometry(geometry)
+            vis.poll_events()
+            vis.update_renderer()
+
 
 def matplotlib_vis(): 
     i = 0

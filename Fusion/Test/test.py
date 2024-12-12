@@ -49,6 +49,7 @@ parser.add_argument('--sparse_val', type=float, default=0.0, help="encode sparse
 parser.add_argument('--num_samples', default=0, type=int, help='number of samples')
 
 #local datapath 
+
 local_data_path = '/home/jetson/VE450/Fusion/Datasets/KITTI/depth_selection/val_selection_cropped'
 
 def main():
@@ -171,7 +172,7 @@ def main():
             assert pil_img.size == (1216, 352)
             # assert pil_img.size == (352, 352)
             pil_img.save(os.path.join(save_root, 'F' + str(i) + '.png'))
-            os.rename(raw_path, local_data_path + '/velodyne_raw/L' + str(i) + '.png')
+            # (raw_path, local_data_path + 'L' + str(i) + '.png')
     print('average_time: ', sum(total_time[0:])/(len(total_time[0:])))
     print('num imgs: ', i + 1)
 

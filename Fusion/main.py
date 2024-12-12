@@ -66,7 +66,7 @@ parser.add_argument("--normal", type=str2bool, nargs='?', const=True, default=Fa
 parser.add_argument("--no_aug", type=str2bool, nargs='?', const=True, default=False, help="rotate image")
 
 # Paths settings
-parser.add_argument('--save_path', default='Saved/', help='save path')
+parser.add_argument('--save_path', default='Saved/best/', help='save path')
 parser.add_argument('--data_path', required=True, help='path to desired dataset')
 
 # Optimizer settings
@@ -172,7 +172,8 @@ def main():
     # Resume training
     best_epoch = 0
     lowest_loss = np.inf
-    args.save_path = os.path.join(args.save_path, save_id)
+    # args.save_path = os.path.join(args.save_path, save_id)
+    args.save_path = os.path.join(args.save_path)
     mkdir_if_missing(args.save_path)
     log_file_name = 'log_train_start_0.txt'
     args.resume = first_run(args.save_path)
@@ -388,6 +389,7 @@ def validate(loader, model, criterion_lidar, criterion_rgb, criterion_local, cri
     with torch.no_grad():
         # end = time.time()
         for i, (input, gt) in tqdm(enumerate(loader)):
+            print(gt.size())
             if not args.no_cuda:
                 input, gt = input.cuda(non_blocking=True), gt.cuda(non_blocking=True)
             prediction, lidar_out, precise, guide = model(input, epoch)
@@ -403,7 +405,8 @@ def validate(loader, model, criterion_lidar, criterion_rgb, criterion_local, cri
             score.update(metric.get_metric(args.metric), metric.num)
             score_1.update(metric.get_metric(args.metric_1), metric.num)
 
-            if (i + 1) % args.print_freq == 0:
+            # if (i + 1) % args.print_freq == 0:
+            if (i + 1) % 1 == 0:
                 print('Test: [{0}/{1}]\t'
                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
                       'Metric {score.val:.4f} ({score.avg:.4f})'.format(
